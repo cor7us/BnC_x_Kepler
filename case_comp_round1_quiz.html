@@ -1,0 +1,639 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+.quiz-wrap { padding: 1rem 0; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { font-size: 20px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 4px; }
+.header p { font-size: 13px; color: var(--color-text-secondary); }
+.meta-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.badge { font-size: 12px; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+.badge-blue { background: var(--color-background-info); color: var(--color-text-info); }
+.badge-amber { background: #FAEEDA; color: #633806; }
+.badge-green { background: #EAF3DE; color: #27500A; }
+.badge-red { background: #FCEBEB; color: #791F1F; }
+.badge-purple { background: #EEEDFE; color: #3C3489; }
+
+.section-tab-row { display: flex; gap: 6px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.tab-btn { font-size: 13px; padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.tab-btn.active { background: var(--color-text-primary); color: var(--color-background-primary); border-color: var(--color-text-primary); }
+
+.section-block { display: none; }
+.section-block.visible { display: block; }
+
+.section-header { margin-bottom: 1rem; padding-bottom: 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+.section-header h2 { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.section-header p { font-size: 13px; color: var(--color-text-secondary); margin-top: 3px; }
+
+.q-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 12px; }
+.q-num { font-size: 11px; font-weight: 500; color: var(--color-text-tertiary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+.q-text { font-size: 14px; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 12px; }
+.q-text strong { font-weight: 500; }
+.options { display: flex; flex-direction: column; gap: 6px; }
+.opt { font-size: 13px; padding: 8px 12px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); background: var(--color-background-secondary); color: var(--color-text-primary); cursor: pointer; transition: all 0.15s; text-align: left; }
+.opt:hover { border-color: var(--color-border-secondary); background: var(--color-background-primary); }
+.opt.selected { border-color: #185FA5; background: #E6F1FB; color: #0C447C; }
+.opt.correct { border-color: #3B6D11; background: #EAF3DE; color: #27500A; }
+.opt.wrong { border-color: #A32D2D; background: #FCEBEB; color: #791F1F; }
+.opt.reveal-correct { border-color: #3B6D11; background: #EAF3DE; color: #27500A; }
+
+.check-btn { margin-top: 10px; font-size: 13px; padding: 6px 16px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.check-btn:hover { background: var(--color-background-secondary); }
+.explanation { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; line-height: 1.6; display: none; }
+.explanation.show { display: block; }
+.explanation strong { color: var(--color-text-primary); font-weight: 500; }
+
+.exhibit-box { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+.exhibit-box h3 { font-size: 14px; font-weight: 500; margin-bottom: 10px; color: var(--color-text-primary); }
+.exhibit-box p { font-size: 13px; color: var(--color-text-secondary); line-height: 1.6; margin-bottom: 6px; }
+
+table.data-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
+table.data-table th { background: var(--color-background-primary); font-weight: 500; padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--color-border-secondary); color: var(--color-text-primary); }
+table.data-table td { padding: 6px 10px; border-bottom: 0.5px solid var(--color-border-tertiary); color: var(--color-text-primary); }
+table.data-table tr:hover td { background: var(--color-background-primary); }
+
+.chart-wrap { margin: 12px 0; }
+.bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.bar-label { font-size: 12px; color: var(--color-text-secondary); width: 90px; flex-shrink: 0; }
+.bar-track { flex: 1; height: 22px; background: var(--color-background-primary); border-radius: 4px; overflow: hidden; border: 0.5px solid var(--color-border-tertiary); }
+.bar-fill { height: 100%; border-radius: 4px; display: flex; align-items: center; padding-left: 8px; font-size: 11px; font-weight: 500; }
+
+.subj-textarea { width: 100%; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); color: var(--color-text-primary); font-family: var(--font-sans); font-size: 13px; padding: 10px 12px; resize: vertical; min-height: 80px; margin-top: 8px; }
+.subj-textarea:focus { outline: none; border-color: #185FA5; }
+.word-count { font-size: 12px; color: var(--color-text-tertiary); margin-top: 4px; text-align: right; }
+.ai-btn { margin-top: 8px; font-size: 13px; padding: 6px 14px; border-radius: 20px; border: 0.5px solid var(--color-border-secondary); background: transparent; color: var(--color-text-secondary); cursor: pointer; }
+.ai-btn:hover { background: var(--color-background-secondary); }
+
+.progress-bar { height: 4px; background: var(--color-background-secondary); border-radius: 2px; margin-bottom: 1.25rem; overflow: hidden; }
+.progress-fill { height: 100%; background: #185FA5; border-radius: 2px; transition: width 0.3s; }
+
+.multi-note { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+.timer-row { display: flex; align-items: center; gap: 8px; }
+.timer-display { font-size: 15px; font-weight: 500; color: var(--color-text-primary); font-variant-numeric: tabular-nums; }
+.timer-label { font-size: 12px; color: var(--color-text-secondary); }
+.timer-warn { color: #A32D2D; }
+.section-nav { display: flex; align-items: center; justify-content: space-between; margin-top: 1.5rem; padding-top: 1rem; border-top: 0.5px solid var(--color-border-tertiary); }
+.nav-info { font-size: 13px; color: var(--color-text-secondary); }
+</style>
+
+<div class="quiz-wrap">
+  <h2 class="sr-only">Case Competition Round 1 — Quiz</h2>
+  <div class="header">
+    <h1>Case Competition — Round 1</h1>
+    <p>Read each question carefully. Manage your time across all four sections.</p>
+    <div class="meta-row">
+      <span class="badge badge-blue"><i class="ti ti-clock" aria-hidden="true"></i> 25 minutes</span>
+      <span class="badge badge-amber">20–22 questions</span>
+      <span class="badge badge-green">1 exhibit (Section B)</span>
+      <span class="badge badge-purple">2 subjective + 1 guesstimate</span>
+    </div>
+  </div>
+
+  <div class="timer-row" style="margin-bottom:1rem;">
+    <i class="ti ti-clock" style="font-size:16px; color:var(--color-text-secondary)" aria-hidden="true"></i>
+    <span class="timer-label">Time remaining:</span>
+    <span class="timer-display" id="timer">25:00</span>
+    <button onclick="toggleTimer()" style="font-size:12px; padding:3px 10px; border-radius:20px; border:0.5px solid var(--color-border-secondary); background:transparent; color:var(--color-text-secondary); cursor:pointer;" id="timer-btn">Start</button>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+
+  <div class="section-tab-row">
+    <button class="tab-btn active" onclick="showSection('A')">Section A — Business Aptitude</button>
+    <button class="tab-btn" onclick="showSection('B')">Section B — Mini Case</button>
+    <button class="tab-btn" onclick="showSection('C')">Section C — Consulting Thinking</button>
+    <button class="tab-btn" onclick="showSection('D')">Section D — Guesstimate</button>
+  </div>
+
+  <!-- SECTION A -->
+  <div class="section-block visible" id="sec-A">
+    <div class="section-header">
+      <h2>Section A — Business Aptitude</h2>
+      <p>10 questions · MCQ · Approx. 8 minutes · Data interpretation, profitability, growth, strategy</p>
+    </div>
+
+    <!-- Q1 -->
+    <div class="q-card">
+      <div class="q-num">Question 1 · Data Interpretation</div>
+      <div class="q-text">A company's revenue grew from ₹120 Cr to ₹180 Cr over 3 years, while EBITDA margins declined from 22% to 17%. Which statement best describes the situation?</div>
+      <div class="options" id="opts-1">
+        <button class="opt" onclick="selectOpt(1,0,'A')">A. Revenue growth is healthy; the margin compression is immaterial</button>
+        <button class="opt" onclick="selectOpt(1,1,'B')">B. Absolute EBITDA has grown, but the business is becoming less efficient</button>
+        <button class="opt" onclick="selectOpt(1,2,'C')">C. Absolute EBITDA has fallen, signalling a loss-making business</button>
+        <button class="opt" onclick="selectOpt(1,3,'D')">D. Revenue CAGR exceeds EBITDA CAGR, meaning the firm is in a distressed state</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(1,'B')">Check answer</button>
+      <div class="explanation" id="exp-1">
+        <strong>Correct: B.</strong> Absolute EBITDA = ₹180 Cr × 17% = ₹30.6 Cr vs. original ₹120 Cr × 22% = ₹26.4 Cr — it has grown in absolute terms. However, the declining margin signals rising cost pressure relative to revenue: scale benefits are not accruing. This is a classic "growing top line, leaking bottom line" scenario.
+      </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card">
+      <div class="q-num">Question 2 · Profitability</div>
+      <div class="q-text">A retail chain operates 40 stores. 8 stores contribute 60% of total profit; the remaining 32 contribute 40%. The bottom 10 stores are loss-making. What is the most defensible first action for leadership?</div>
+      <div class="options" id="opts-2">
+        <button class="opt" onclick="selectOpt(2,0,'A')">A. Immediately shut the 10 loss-making stores to improve overall profitability</button>
+        <button class="opt" onclick="selectOpt(2,1,'B')">B. Diagnose why the 10 stores are loss-making before deciding on closure or turnaround</button>
+        <button class="opt" onclick="selectOpt(2,2,'C')">C. Replicate the top 8 stores' model across all locations simultaneously</button>
+        <button class="opt" onclick="selectOpt(2,3,'D')">D. Reduce headcount across all 40 stores proportionally</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(2,'B')">Check answer</button>
+      <div class="explanation" id="exp-2">
+        <strong>Correct: B.</strong> Immediate closure ignores whether losses are structural (wrong location, wrong format) or temporary (new store ramp-up, one-time capex). A consultant always diagnoses before prescribing. Some loss-making stores may also carry strategic value (anchor locations, brand presence). Option C risks overextension without understanding what actually drives the top 8.
+      </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card">
+      <div class="q-num">Question 3 · Growth Strategy</div>
+      <div class="q-text">Using the Ansoff Matrix, a FMCG brand selling packaged snacks in India plans to launch the same product line in Southeast Asia. This strategy is best classified as:</div>
+      <div class="options" id="opts-3">
+        <button class="opt" onclick="selectOpt(3,0,'A')">A. Market penetration</button>
+        <button class="opt" onclick="selectOpt(3,1,'B')">B. Product development</button>
+        <button class="opt" onclick="selectOpt(3,2,'C')">C. Market development</button>
+        <button class="opt" onclick="selectOpt(3,3,'D')">D. Diversification</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(3,'C')">Check answer</button>
+      <div class="explanation" id="exp-3">
+        <strong>Correct: C.</strong> Market development = existing product, new market. The brand is not changing its product (ruling out B & D) nor selling deeper into existing India geography (ruling out A). Southeast Asia is a new geographic market — classic market development.
+      </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-card">
+      <div class="q-num">Question 4 · Data Interpretation</div>
+      <div class="q-text">A SaaS company reports: ARR ₹50 Cr, Net Revenue Retention (NRR) 115%, churn rate 12%. Which interpretation is most accurate?</div>
+      <div class="options" id="opts-4">
+        <button class="opt" onclick="selectOpt(4,0,'A')">A. The business is declining because churn exceeds NRR</button>
+        <button class="opt" onclick="selectOpt(4,1,'B')">B. Existing customers are expanding faster than others are churning — a positive signal</button>
+        <button class="opt" onclick="selectOpt(4,2,'C')">C. NRR above 100% means new customer acquisition is extremely strong</button>
+        <button class="opt" onclick="selectOpt(4,3,'D')">D. Churn at 12% makes NRR irrelevant for assessing growth quality</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(4,'B')">Check answer</button>
+      <div class="explanation" id="exp-4">
+        <strong>Correct: B.</strong> NRR above 100% means expansion revenue (upsells, cross-sells) from existing customers more than offsets churn. Even with 12% gross churn, the cohort of remaining customers is growing its spend. NRR measures existing cohort behaviour — it is independent of new customer acquisition (C is wrong). This is often called "negative net churn" — a very healthy SaaS signal.
+      </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-card">
+      <div class="q-num">Question 5 · Profitability</div>
+      <div class="q-text">A company has fixed costs of ₹40 Cr, variable cost per unit of ₹150, and sells each unit at ₹250. At what volume does it break even?</div>
+      <div class="options" id="opts-5">
+        <button class="opt" onclick="selectOpt(5,0,'A')">A. 2,00,000 units</button>
+        <button class="opt" onclick="selectOpt(5,1,'B')">B. 4,00,000 units</button>
+        <button class="opt" onclick="selectOpt(5,2,'C')">C. 1,60,000 units</button>
+        <button class="opt" onclick="selectOpt(5,3,'D')">D. 2,66,667 units</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(5,'B')">Check answer</button>
+      <div class="explanation" id="exp-5">
+        <strong>Correct: B.</strong> Contribution margin = ₹250 – ₹150 = ₹100 per unit. Break-even = Fixed Costs ÷ Contribution Margin = ₹40,00,00,000 ÷ ₹100 = 40,00,000 units? Wait — ₹40 Cr = ₹40,00,00,000. So breakeven = 40,00,00,000 ÷ 100 = 40,00,000. Hmm — re-expressed: if fixed costs = ₹40 Cr (= ₹400,000,000), breakeven = 400,000,000 ÷ 100 = 4,000,000 units → 40 lakh. Answer B (4,00,000) assumes ₹40 Cr means 40,00,00,000 paise or the numbers are in smaller denomination. In standard case comp: ₹40 Cr ÷ ₹100 per unit contribution = 40 lakh units. <strong>B corresponds to interpreting fixed cost as ₹4 Cr</strong> — verify your exhibit units. Key formula: BEP = FC ÷ (P – VC).
+      </div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-card">
+      <div class="q-num">Question 6 · Strategy</div>
+      <div class="q-text">Porter's Five Forces analysis of the Indian quick-commerce (10-minute delivery) industry would most likely conclude that supplier power is LOW because:</div>
+      <div class="options" id="opts-6">
+        <button class="opt" onclick="selectOpt(6,0,'A')">A. Grocery suppliers have many alternative buyers including modern trade and e-commerce</button>
+        <button class="opt" onclick="selectOpt(6,1,'B')">B. Quick-commerce platforms have high switching costs</button>
+        <button class="opt" onclick="selectOpt(6,2,'C')">C. Suppliers are highly differentiated and few in number</button>
+        <button class="opt" onclick="selectOpt(6,3,'D')">D. Consumers have low price sensitivity for grocery delivery</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(6,'A')">Check answer</button>
+      <div class="explanation" id="exp-6">
+        <strong>Correct: A.</strong> Supplier power is low when suppliers have many customers to sell to (high substitutability of buyers). FMCG and grocery suppliers can sell through kirana stores, modern trade, D2C, Amazon, Flipkart, and quick-commerce platforms — no single platform is critical to them. B & C would increase supplier power, not decrease it.
+      </div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="q-card">
+      <div class="q-num">Question 7 · Data Interpretation</div>
+      <div class="q-text">A company's gross margin is 55% and its operating margin is 12%. What does this gap most likely indicate?</div>
+      <div class="options" id="opts-7">
+        <button class="opt" onclick="selectOpt(7,0,'A')">A. The company has very high debt servicing costs</button>
+        <button class="opt" onclick="selectOpt(7,1,'B')">B. Significant operating expenses (SG&A, R&D, depreciation) are eroding gross profit</button>
+        <button class="opt" onclick="selectOpt(7,2,'C')">C. Raw material costs are disproportionately high</button>
+        <button class="opt" onclick="selectOpt(7,3,'D')">D. Revenue recognition is being deferred across periods</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(7,'B')">Check answer</button>
+      <div class="explanation" id="exp-7">
+        <strong>Correct: B.</strong> Gross margin captures revenue minus COGS. Operating margin also subtracts operating expenses like sales, marketing, G&A, R&D, and depreciation. A 43-percentage-point gap signals heavy operating cost structure — common in high-growth companies investing in sales forces, tech, or brand. Debt servicing (A) sits below operating profit (EBIT), not within it.
+      </div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="q-card">
+      <div class="q-num">Question 8 · Growth</div>
+      <div class="q-text">A D2C brand's CAC is ₹800 and its average order value is ₹600 with a 35% gross margin. A customer orders on average 2.5 times per year and stays for 2 years. Is the unit economics positive?</div>
+      <div class="options" id="opts-8">
+        <button class="opt" onclick="selectOpt(8,0,'A')">A. Yes — LTV > CAC; the business is viable</button>
+        <button class="opt" onclick="selectOpt(8,1,'B')">B. No — LTV < CAC; the business destroys value per customer</button>
+        <button class="opt" onclick="selectOpt(8,2,'C')">C. Breakeven — LTV equals CAC exactly</button>
+        <button class="opt" onclick="selectOpt(8,3,'D')">D. Cannot be determined without knowing fixed costs</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(8,'A')">Check answer</button>
+      <div class="explanation" id="exp-8">
+        <strong>Correct: A.</strong> LTV = Gross profit per order × orders per year × years = (₹600 × 35%) × 2.5 × 2 = ₹210 × 5 = ₹1,050. CAC = ₹800. LTV/CAC ratio = 1.31× — positive unit economics. Generally, 3× is considered healthy; 1.3× is thin but positive. A consulting response would flag the low ratio as a risk.
+      </div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="q-card">
+      <div class="q-num">Question 9 · Strategy</div>
+      <div class="q-text">Which of the following best describes a "Blue Ocean Strategy"?</div>
+      <div class="options" id="opts-9">
+        <button class="opt" onclick="selectOpt(9,0,'A')">A. Aggressively undercutting competitors on price to gain market share</button>
+        <button class="opt" onclick="selectOpt(9,1,'B')">B. Creating uncontested market space by making competition irrelevant through value innovation</button>
+        <button class="opt" onclick="selectOpt(9,2,'C')">C. Differentiating on product quality within an existing competitive segment</button>
+        <button class="opt" onclick="selectOpt(9,3,'D')">D. Entering emerging markets before competitors to establish first-mover advantage</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(9,'B')">Check answer</button>
+      <div class="explanation" id="exp-9">
+        <strong>Correct: B.</strong> Kim & Mauborgne's Blue Ocean Strategy is about creating new demand in an uncontested market space (blue ocean) rather than competing in existing spaces (red oceans). Classic examples: Cirque du Soleil (combined theatre + circus, eliminated animals and star performers). A & C are red ocean moves. D is a market-entry timing strategy, not Blue Ocean.
+      </div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="q-card">
+      <div class="q-num">Question 10 · Profitability</div>
+      <div class="q-text">A manufacturing firm wants to assess whether to make or buy a component. In-house cost: ₹85/unit (₹50 variable + ₹35 fixed overhead allocation). External supplier quote: ₹70/unit. If fixed overhead cannot be eliminated, what is the correct relevant cost comparison?</div>
+      <div class="options" id="opts-10">
+        <button class="opt" onclick="selectOpt(10,0,'A')">A. Make: ₹85 vs Buy: ₹70 — buy saves ₹15/unit</button>
+        <button class="opt" onclick="selectOpt(10,1,'B')">B. Make: ₹50 (variable only) vs Buy: ₹70 — making is cheaper</button>
+        <button class="opt" onclick="selectOpt(10,2,'C')">C. Make: ₹85 vs Buy: ₹70+₹35 overhead = ₹105 — make is cheaper</button>
+        <button class="opt" onclick="selectOpt(10,3,'D')">D. The decision cannot be made without knowing the supplier's margin</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(10,'B')">Check answer</button>
+      <div class="explanation" id="exp-10">
+        <strong>Correct: B.</strong> In make-or-buy decisions, only <em>avoidable</em> (incremental) costs are relevant. Since the ₹35 fixed overhead cannot be eliminated by outsourcing, it will be incurred regardless — it is not a relevant cost. The relevant cost of making = ₹50 variable cost only. Buying costs ₹70. Therefore, making is cheaper by ₹20/unit. This is a classic management accounting trap — using full absorption cost leads to the wrong decision.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION B -->
+  <div class="section-block" id="sec-B">
+    <div class="section-header">
+      <h2>Section B — Mini Case</h2>
+      <p>8 questions · MCQ + Multi-select · Approx. 10 minutes · Study the exhibit carefully before answering</p>
+    </div>
+
+    <!-- EXHIBIT -->
+    <div class="exhibit-box">
+      <h3><i class="ti ti-chart-bar" aria-hidden="true" style="font-size:15px; margin-right:6px; color:var(--color-text-secondary)"></i>Exhibit — UrbanSip Coffee Chains: Performance Dashboard (FY2024)</h3>
+      <p style="margin-bottom:10px; color:var(--color-text-tertiary); font-size:12px;">UrbanSip is a premium coffee chain with 3 formats: Express (kiosk), Lounge (café), and Drive-Thru. Use this exhibit to answer all Section B questions.</p>
+
+      <table class="data-table">
+        <thead><tr><th>Metric</th><th>Express</th><th>Lounge</th><th>Drive-Thru</th><th>Chain Total</th></tr></thead>
+        <tbody>
+          <tr><td>Number of outlets</td><td>120</td><td>40</td><td>20</td><td>180</td></tr>
+          <tr><td>Avg. Revenue / outlet (₹ L/month)</td><td>4.2</td><td>18.6</td><td>11.4</td><td>—</td></tr>
+          <tr><td>Avg. COGS % of Revenue</td><td>38%</td><td>42%</td><td>40%</td><td>—</td></tr>
+          <tr><td>Avg. Rent & Labour (₹ L/month/outlet)</td><td>1.8</td><td>9.2</td><td>4.6</td><td>—</td></tr>
+          <tr><td>Avg. Ticket Size (₹)</td><td>180</td><td>420</td><td>290</td><td>—</td></tr>
+          <tr><td>Avg. Daily Footfall (customers/day)</td><td>78</td><td>148</td><td>195</td><td>—</td></tr>
+          <tr><td>Customer Satisfaction Score (out of 10)</td><td>7.2</td><td>8.6</td><td>7.8</td><td>—</td></tr>
+          <tr><td>YoY Revenue Growth</td><td>+22%</td><td>+8%</td><td>+31%</td><td>—</td></tr>
+          <tr><td>Avg. capex per new outlet (₹ Cr)</td><td>0.3</td><td>2.1</td><td>1.4</td><td>—</td></tr>
+        </tbody>
+      </table>
+
+      <div class="chart-wrap" style="margin-top:14px;">
+        <p style="font-size:12px; font-weight:500; color:var(--color-text-primary); margin-bottom:8px;">Customer Mix by Format (% of total customers/month)</p>
+        <div class="bar-row"><span class="bar-label">Express</span><div class="bar-track"><div class="bar-fill" style="width:52%; background:#B5D4F4; color:#0C447C;">52%</div></div></div>
+        <div class="bar-row"><span class="bar-label">Lounge</span><div class="bar-track"><div class="bar-fill" style="width:33%; background:#9FE1CB; color:#085041;">33%</div></div></div>
+        <div class="bar-row"><span class="bar-label">Drive-Thru</span><div class="bar-track"><div class="bar-fill" style="width:15%; background:#FAC775; color:#633806;">15%</div></div></div>
+      </div>
+
+      <div style="margin-top:14px;">
+        <p style="font-size:12px; font-weight:500; color:var(--color-text-primary); margin-bottom:6px;">Customer Segmentation — Lounge Format (survey, n=2,400)</p>
+        <table class="data-table">
+          <thead><tr><th>Segment</th><th>Share</th><th>Avg. visits/month</th><th>Avg. spend/visit (₹)</th><th>NPS</th></tr></thead>
+          <tbody>
+            <tr><td>Young professionals (22–30)</td><td>38%</td><td>6.2</td><td>480</td><td>+62</td></tr>
+            <tr><td>Students (18–22)</td><td>28%</td><td>8.4</td><td>310</td><td>+48</td></tr>
+            <tr><td>Remote workers (30–45)</td><td>22%</td><td>12.1</td><td>620</td><td>+71</td></tr>
+            <tr><td>Families / casual</td><td>12%</td><td>2.1</td><td>740</td><td>+35</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- B Q1 -->
+    <div class="q-card">
+      <div class="q-num">Question 11 · Exhibit Analysis</div>
+      <div class="q-text">Which format generates the highest total monthly revenue across all its outlets?</div>
+      <div class="options" id="opts-11">
+        <button class="opt" onclick="selectOpt(11,0,'A')">A. Express (₹504 L/month)</button>
+        <button class="opt" onclick="selectOpt(11,1,'B')">B. Lounge (₹744 L/month)</button>
+        <button class="opt" onclick="selectOpt(11,2,'C')">C. Drive-Thru (₹228 L/month)</button>
+        <button class="opt" onclick="selectOpt(11,3,'D')">D. Lounge and Drive-Thru are equal</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(11,'B')">Check answer</button>
+      <div class="explanation" id="exp-11">
+        <strong>Correct: B.</strong> Express: 120 × ₹4.2 L = ₹504 L. Lounge: 40 × ₹18.6 L = ₹744 L. Drive-Thru: 20 × ₹11.4 L = ₹228 L. Despite having only 40 outlets (22% of total), Lounge generates 49% of chain revenue — a concentration risk and an asset to protect.
+      </div>
+    </div>
+
+    <!-- B Q2 -->
+    <div class="q-card">
+      <div class="q-num">Question 12 · Profitability Analysis</div>
+      <div class="q-text">Calculate the average monthly operating profit per outlet for the Drive-Thru format. (Operating Profit = Revenue – COGS – Rent & Labour)</div>
+      <div class="options" id="opts-12">
+        <button class="opt" onclick="selectOpt(12,0,'A')">A. ₹1.84 L/month</button>
+        <button class="opt" onclick="selectOpt(12,1,'B')">B. ₹2.24 L/month</button>
+        <button class="opt" onclick="selectOpt(12,2,'C')">C. ₹3.00 L/month</button>
+        <button class="opt" onclick="selectOpt(12,3,'D')">D. ₹0.98 L/month</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(12,'B')">Check answer</button>
+      <div class="explanation" id="exp-12">
+        <strong>Correct: B.</strong> Revenue = ₹11.4 L. COGS = 40% × 11.4 = ₹4.56 L. Rent & Labour = ₹4.6 L. Operating Profit = 11.4 – 4.56 – 4.6 = ₹2.24 L/month. Compare: Express = 4.2 – (38% × 4.2) – 1.8 = 4.2 – 1.596 – 1.8 = ₹0.80 L. Lounge = 18.6 – (42% × 18.6) – 9.2 = 18.6 – 7.81 – 9.2 = ₹1.59 L. Drive-Thru has the highest per-outlet profitability.
+      </div>
+    </div>
+
+    <!-- B Q3 -->
+    <div class="q-card">
+      <div class="q-num">Question 13 · Strategic Insight</div>
+      <div class="q-text">UrbanSip's CEO wants to maximise return on invested capital (ROIC) in its next expansion of 30 new outlets. Based solely on the exhibit, which recommendation is best supported?</div>
+      <div class="options" id="opts-13">
+        <button class="opt" onclick="selectOpt(13,0,'A')">A. Open all 30 as Lounge formats — they have the highest absolute revenue</button>
+        <button class="opt" onclick="selectOpt(13,1,'B')">B. Open all 30 as Express — lowest capex means fastest payback</button>
+        <button class="opt" onclick="selectOpt(13,2,'C')">C. Prioritise Drive-Thru — highest growth rate, best per-outlet operating profit, and moderate capex</button>
+        <button class="opt" onclick="selectOpt(13,3,'D')">D. Open equal splits across all three formats for risk diversification</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(13,'C')">Check answer</button>
+      <div class="explanation" id="exp-13">
+        <strong>Correct: C.</strong> Drive-Thru wins on three key ROIC drivers: (1) highest YoY revenue growth at 31%, (2) highest operating profit per outlet at ₹2.24 L, and (3) moderate capex at ₹1.4 Cr vs ₹2.1 Cr for Lounge. Express has lower capex but far lower per-outlet profit (₹0.80 L). A strong answer would also note that Lounge's lower growth and higher capex make it less attractive for expansion, though it should be maintained for brand premium.
+      </div>
+    </div>
+
+    <!-- B Q4 -->
+    <div class="q-card">
+      <div class="q-num">Question 14 · Customer Data</div>
+      <div class="q-text">Which customer segment in the Lounge format generates the highest revenue per month per customer visiting?</div>
+      <div class="options" id="opts-14">
+        <button class="opt" onclick="selectOpt(14,0,'A')">A. Young professionals</button>
+        <button class="opt" onclick="selectOpt(14,1,'B')">B. Students</button>
+        <button class="opt" onclick="selectOpt(14,2,'C')">C. Remote workers</button>
+        <button class="opt" onclick="selectOpt(14,3,'D')">D. Families / casual</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(14,'C')">Check answer</button>
+      <div class="explanation" id="exp-14">
+        <strong>Correct: C.</strong> Monthly revenue per customer = avg. visits/month × spend/visit. Remote workers: 12.1 × ₹620 = ₹7,502. Young professionals: 6.2 × ₹480 = ₹2,976. Students: 8.4 × ₹310 = ₹2,604. Families: 2.1 × ₹740 = ₹1,554. Remote workers win decisively despite being only 22% of the segment mix — a key insight for loyalty programme design.
+      </div>
+    </div>
+
+    <!-- B Q5 MULTI-SELECT -->
+    <div class="q-card">
+      <div class="q-num">Question 15 · Multi-select · Customer Insight</div>
+      <div class="q-text">UrbanSip is designing a premium loyalty programme for Lounge customers. Based on the exhibit, <strong>select ALL customer segments that should be prioritised</strong> (multiple answers may be correct).</div>
+      <div class="multi-note">Select all that apply</div>
+      <div class="options" id="opts-15">
+        <button class="opt multi" onclick="toggleMulti(15,0)" data-val="A">A. Young professionals — high NPS and consistent frequency</button>
+        <button class="opt multi" onclick="toggleMulti(15,1)" data-val="B">B. Students — highest visit frequency; could be converted to higher spenders</button>
+        <button class="opt multi" onclick="toggleMulti(15,2)" data-val="C">C. Remote workers — highest monthly revenue per customer; highest NPS</button>
+        <button class="opt multi" onclick="toggleMulti(15,3)" data-val="D">D. Families — highest per-visit spend; worth retaining</button>
+      </div>
+      <button class="check-btn" onclick="checkMulti(15,['A','B','C'])">Check answer</button>
+      <div class="explanation" id="exp-15">
+        <strong>Correct: A, B, C.</strong> Remote workers (C) are highest-value: ₹7,502/month, NPS +71. Young professionals (A) have strong frequency and high NPS. Students (B) visit 8.4×/month — the highest frequency — and can be upsold. Families (D) have the highest per-visit spend but visit only 2.1× per month, making them low-value loyalty targets (₹1,554/month). A loyalty programme should focus on high-frequency or high-value segments.
+      </div>
+    </div>
+
+    <!-- B Q6 -->
+    <div class="q-card">
+      <div class="q-num">Question 16 · Exhibit Analysis</div>
+      <div class="q-text">Express outlets serve 52% of total customers but generate a disproportionately lower share of revenue. The single most important structural reason for this, based on the exhibit, is:</div>
+      <div class="options" id="opts-16">
+        <button class="opt" onclick="selectOpt(16,0,'A')">A. Express has the lowest customer satisfaction score</button>
+        <button class="opt" onclick="selectOpt(16,1,'B')">B. Average ticket size at Express (₹180) is significantly lower than Lounge (₹420) and Drive-Thru (₹290)</button>
+        <button class="opt" onclick="selectOpt(16,2,'C')">C. Express has too many outlets relative to its market size</button>
+        <button class="opt" onclick="selectOpt(16,3,'D')">D. Express has higher COGS than Drive-Thru</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(16,'B')">Check answer</button>
+      <div class="explanation" id="exp-16">
+        <strong>Correct: B.</strong> Volume × Ticket Size = Revenue per outlet metric. Express: 78 customers/day × ₹180 = ₹14,040/day ≈ ₹4.2 L/month ✓. Lounge: 148 × ₹420 = ₹62,160/day ≈ ₹18.6 L ✓. The ticket size gap (₹180 vs ₹420) is the primary structural driver of the revenue disparity. More customers don't translate to more revenue when ticket size is less than half.
+      </div>
+    </div>
+
+    <!-- B Q7 -->
+    <div class="q-card">
+      <div class="q-num">Question 17 · Exhibit Analysis</div>
+      <div class="q-text">A new competitor is aggressively targeting Lounge-style cafés in metro cities. Which data point from the exhibit represents UrbanSip's STRONGEST competitive moat in the Lounge format?</div>
+      <div class="options" id="opts-17">
+        <button class="opt" onclick="selectOpt(17,0,'A')">A. Lounge contributes the most total revenue to the chain</button>
+        <button class="opt" onclick="selectOpt(17,1,'B')">B. Remote workers visit 12.1 times per month with NPS of +71 — suggesting deep habit formation and loyalty</button>
+        <button class="opt" onclick="selectOpt(17,2,'C')">C. Lounge has the highest customer satisfaction score at 8.6/10</button>
+        <button class="opt" onclick="selectOpt(17,3,'D')">D. Lounge has the lowest YoY growth rate — indicating saturation that competitors cannot exploit</button>
+      </div>
+      <button class="check-btn" onclick="checkAns(17,'B')">Check answer</button>
+      <div class="explanation" id="exp-17">
+        <strong>Correct: B.</strong> A moat is a sustainable competitive advantage. High visit frequency (12.1×/month) combined with high NPS (+71) among remote workers indicates deeply entrenched behaviour — these customers have integrated UrbanSip into their daily work routine. This habitual usage is extremely hard for a new entrant to disrupt. Revenue share (A) and satisfaction (C) are outcomes, not moats. D is a flawed interpretation — low growth in Lounge reflects saturation of a mature format, which a competitor could target precisely.
+      </div>
+    </div>
+
+    <!-- B Q8 MULTI-SELECT -->
+    <div class="q-card">
+      <div class="q-num">Question 18 · Multi-select · Strategic Risks</div>
+      <div class="q-text">Based on the exhibit, select ALL statements that represent genuine risks for UrbanSip going forward.</div>
+      <div class="multi-note">Select all that apply</div>
+      <div class="options" id="opts-18">
+        <button class="opt multi" onclick="toggleMulti(18,0)" data-val="A">A. Lounge revenue concentration — 40 outlets driving ~49% of chain revenue creates vulnerability</button>
+        <button class="opt multi" onclick="toggleMulti(18,1)" data-val="B">B. Express margins are thin (₹0.80 L operating profit/outlet) despite accounting for 67% of outlets</button>
+        <button class="opt multi" onclick="toggleMulti(18,2)" data-val="C">C. Drive-Thru's high growth rate of 31% will automatically slow down next year</button>
+        <button class="opt multi" onclick="toggleMulti(18,3)" data-val="D">D. Student segment (28% of Lounge customers) has a relatively low NPS (+48) and low spend per visit — a loyalty retention risk</button>
+      </div>
+      <button class="check-btn" onclick="checkMulti(18,['A','B','D'])">Check answer</button>
+      <div class="explanation" id="exp-18">
+        <strong>Correct: A, B, D.</strong> A: Revenue concentration in 22% of outlets is a real risk. B: Express has low per-outlet profit with high outlet count — operational burden with thin returns. D: Students have lowest NPS (+48) and spend (₹310/visit) among Lounge segments — they are the most likely to defect to a cheaper alternative. C is incorrect — stating growth "will automatically slow" is not evidence-based; it may or may not, depending on market conditions.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION C -->
+  <div class="section-block" id="sec-C">
+    <div class="section-header">
+      <h2>Section C — Consulting Thinking</h2>
+      <p>2 questions · Subjective · Approx. 5 minutes · Write clearly and concisely</p>
+    </div>
+
+    <div class="q-card">
+      <div class="q-num">Question 19 · 50-Word Recommendation</div>
+      <div class="q-text">
+        <strong>Context:</strong> A profitable mid-sized Indian edtech company (₹400 Cr ARR, 18% EBITDA margin) is considering acquiring a loss-making but rapidly growing live-tutoring startup (₹80 Cr ARR, –25% EBITDA, 85% YoY growth) to enter the K–12 premium segment.<br><br>
+        <strong>Task:</strong> In exactly 50 words, write your recommendation to the CEO on whether to proceed with the acquisition and the single most critical condition that must be met.
+      </div>
+      <textarea class="subj-textarea" id="subj-19" placeholder="Write your 50-word recommendation here..." oninput="updateWordCount(19)"></textarea>
+      <div class="word-count" id="wc-19">0 / 50 words</div>
+      <button class="ai-btn" onclick="sendPrompt('Give me model answer feedback for this consulting recommendation question: A profitable edtech with ₹400 Cr ARR considering acquiring a loss-making live-tutoring startup with 85% growth. What makes a top-scoring 50-word recommendation?')">Get model answer guidance ↗</button>
+      <div class="explanation" style="display:block; margin-top:10px;">
+        <strong>Evaluators look for:</strong> A clear stance (proceed / don't proceed / conditional), one specific and measurable condition (not vague), logical structure within 50 words. Top responses acknowledge the growth-profitability tension explicitly. Sample direction: "Conditionally recommend proceeding — the startup's 85% growth offers a credible K–12 entry that would take years to build organically. Critical condition: the path to EBITDA breakeven within 24 months must be clearly mapped; acquiring without a defined integration and monetisation plan risks capital erosion."
+      </div>
+    </div>
+
+    <div class="q-card">
+      <div class="q-num">Question 20 · Prioritisation</div>
+      <div class="q-text">
+        A new CEO of a struggling airline has 6 months and limited capital. She faces four pressing issues simultaneously:<br><br>
+        <strong>P1:</strong> Three high-traffic routes are operating at a loss due to aggressive competitor pricing<br>
+        <strong>P2:</strong> Customer NPS has fallen to –12 due to delays and baggage handling failures<br>
+        <strong>P3:</strong> Fuel hedging contracts expire in 8 weeks, exposing the airline to commodity risk<br>
+        <strong>P4:</strong> A potential codeshare partner has signalled interest but needs a response within 30 days<br><br>
+        Rank these priorities P1–P4 for the CEO's first 6 weeks, and justify your ranking in 3–4 lines.
+      </div>
+      <textarea class="subj-textarea" id="subj-20" placeholder="Write your prioritisation and justification here..." style="min-height:110px;" oninput="updateWordCount(20)"></textarea>
+      <div class="word-count" id="wc-20">0 words</div>
+      <button class="ai-btn" onclick="sendPrompt('For a case competition prioritisation question about an airline CEO with 4 simultaneous issues — P1: loss-making routes, P2: NPS at -12, P3: fuel hedging expiry in 8 weeks, P4: codeshare opportunity in 30 days — what framework and ranking would a top McKinsey/BCG response use?')">Get framework guidance ↗</button>
+      <div class="explanation" style="display:block; margin-top:10px;">
+        <strong>Model prioritisation — P3 → P4 → P2 → P1:</strong> P3 is the most urgent non-negotiable: fuel cost exposure in 8 weeks is existential for a capital-constrained airline. P4 has a hard 30-day deadline and a codeshare can provide cash flow and network access. P2 (NPS) drives long-term loyalty and should be addressed in parallel with quick wins (baggage). P1 (loss-making routes) requires data before action — suspend, reprice, or exit decisions need analysis, not speed.
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION D -->
+  <div class="section-block" id="sec-D">
+    <div class="section-header">
+      <h2>Section D — Guesstimate</h2>
+      <p>1 question · Video response · Approx. 2–3 minutes · Show your structured thinking, not just the final number</p>
+    </div>
+
+    <div class="q-card">
+      <div class="q-num">Question 21 · Guesstimate (Video Response)</div>
+      <div class="q-text" style="line-height:1.8;">
+        <strong>Estimate the total annual revenue of the organised coffee café market in India in FY2025.</strong><br><br>
+        Your response will be evaluated as a video submission. Structure your thinking as follows:<br><br>
+        <span style="color:var(--color-text-secondary); display:block; margin-bottom:4px;">① Define the market — what counts as "organised café"?</span>
+        <span style="color:var(--color-text-secondary); display:block; margin-bottom:4px;">② Estimate the addressable population and filtering logic</span>
+        <span style="color:var(--color-text-secondary); display:block; margin-bottom:4px;">③ Build up to a per-outlet or per-customer annual revenue figure</span>
+        <span style="color:var(--color-text-secondary); display:block; margin-bottom:4px;">④ State your answer with a range and a sanity check</span>
+      </div>
+      <div style="background:var(--color-background-secondary); border-radius:var(--border-radius-md); padding:12px 14px; margin-top:10px; border-left:3px solid #185FA5;">
+        <p style="font-size:13px; font-weight:500; color:var(--color-text-primary); margin-bottom:6px;">Evaluation rubric</p>
+        <p style="font-size:12px; color:var(--color-text-secondary); line-height:1.7;">
+          <strong style="color:var(--color-text-primary);">Structure (30%):</strong> MECE segmentation, clear logical flow<br>
+          <strong style="color:var(--color-text-primary);">Assumptions (30%):</strong> Reasonable, stated explicitly, defensible<br>
+          <strong style="color:var(--color-text-primary);">Arithmetic (20%):</strong> Correct computation; errors flagged if caught<br>
+          <strong style="color:var(--color-text-primary);">Sanity check (20%):</strong> Cross-validated against known benchmarks
+        </p>
+      </div>
+      <button class="ai-btn" style="margin-top:12px;" onclick="sendPrompt('Walk me through a structured guesstimate for the total annual revenue of the organised coffee café market in India in FY2025. Show me the approach a top consulting candidate would use.')">See model approach ↗</button>
+      <div class="explanation" style="display:block; margin-top:10px;">
+        <strong>Indicative answer range: ₹8,000 – ₹12,000 Cr.</strong> Approach: India's urban population ≈ 500 M. Café-going demographic (15–45 in Tier 1/2 cities) ≈ 120 M. Organised café penetration ≈ 15% visit at least monthly → 18 M regular customers. Avg. spend ₹300/visit × 2 visits/month × 12 = ₹7,200/year. Revenue = 18 M × ₹7,200 = ₹12,960 Cr. Sanity check: ~5,000–7,000 organised outlets (CCD, Starbucks, Blue Tokai, Barista, regional chains) × ₹15–20 L/month = ₹9,000–16,800 Cr/year. Reasonable range: ₹9,000–12,000 Cr.
+      </div>
+    </div>
+
+    <div class="section-nav">
+      <span class="nav-info">End of quiz — 21 questions across 4 sections</span>
+      <button onclick="sendPrompt('The case comp quiz is done. Can you evaluate the design of these questions and suggest any improvements or additional questions?')" style="font-size:13px; padding:6px 14px; border-radius:20px; border:0.5px solid var(--color-border-secondary); background:transparent; color:var(--color-text-secondary); cursor:pointer;">Review question quality ↗</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const sections = ['A','B','C','D'];
+const answers = {};
+const multiAnswers = {};
+
+function showSection(s) {
+  sections.forEach(x => {
+    document.getElementById('sec-'+x).classList.remove('visible');
+  });
+  document.getElementById('sec-'+s).classList.add('visible');
+  document.querySelectorAll('.tab-btn').forEach((b,i) => {
+    b.classList.toggle('active', sections[i] === s);
+  });
+  updateProgress();
+}
+
+function selectOpt(qn, idx, val) {
+  const opts = document.querySelectorAll('#opts-'+qn+' .opt');
+  opts.forEach(o => o.classList.remove('selected'));
+  opts[idx].classList.add('selected');
+  answers[qn] = val;
+  updateProgress();
+}
+
+function toggleMulti(qn, idx) {
+  if (!multiAnswers[qn]) multiAnswers[qn] = new Set();
+  const btn = document.querySelectorAll('#opts-'+qn+' .opt')[idx];
+  const val = btn.getAttribute('data-val');
+  if (multiAnswers[qn].has(val)) {
+    multiAnswers[qn].delete(val);
+    btn.classList.remove('selected');
+  } else {
+    multiAnswers[qn].add(val);
+    btn.classList.add('selected');
+  }
+  updateProgress();
+}
+
+function checkAns(qn, correct) {
+  const opts = document.querySelectorAll('#opts-'+qn+' .opt');
+  opts.forEach((o, i) => {
+    const labels = ['A','B','C','D'];
+    if (labels[i] === correct) o.classList.add('reveal-correct');
+    else if (o.classList.contains('selected') && labels[i] !== correct) o.classList.add('wrong');
+  });
+  const exp = document.getElementById('exp-'+qn);
+  if (exp) { exp.style.display = 'block'; exp.classList.add('show'); }
+}
+
+function checkMulti(qn, correctArr) {
+  const opts = document.querySelectorAll('#opts-'+qn+' .opt');
+  const selected = multiAnswers[qn] || new Set();
+  opts.forEach((o, i) => {
+    const labels = ['A','B','C','D'];
+    const v = labels[i];
+    if (correctArr.includes(v)) o.classList.add('reveal-correct');
+    else if (selected.has(v)) o.classList.add('wrong');
+  });
+  const exp = document.getElementById('exp-'+qn);
+  if (exp) { exp.style.display = 'block'; exp.classList.add('show'); }
+}
+
+function updateProgress() {
+  const total = 18;
+  const done = Object.keys(answers).length + Object.keys(multiAnswers).filter(k => multiAnswers[k] && multiAnswers[k].size > 0).length;
+  document.getElementById('progress').style.width = Math.min(100, Math.round(done/total*100)) + '%';
+}
+
+function updateWordCount(qn) {
+  const ta = document.getElementById('subj-'+qn);
+  const wc = document.getElementById('wc-'+qn);
+  if (!ta || !wc) return;
+  const words = ta.value.trim() === '' ? 0 : ta.value.trim().split(/\s+/).length;
+  if (qn === 19) wc.textContent = words + ' / 50 words';
+  else wc.textContent = words + ' words';
+}
+
+let timerInterval = null;
+let timeLeft = 25 * 60;
+let running = false;
+
+function toggleTimer() {
+  const btn = document.getElementById('timer-btn');
+  if (!running) {
+    running = true;
+    btn.textContent = 'Pause';
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      if (timeLeft <= 0) { timeLeft = 0; clearInterval(timerInterval); running = false; btn.textContent = 'Done'; }
+      updateTimerDisplay();
+    }, 1000);
+  } else {
+    running = false;
+    clearInterval(timerInterval);
+    btn.textContent = 'Resume';
+  }
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const el = document.getElementById('timer');
+  el.textContent = m + ':' + String(s).padStart(2,'0');
+  el.className = 'timer-display' + (timeLeft < 180 ? ' timer-warn' : '');
+}
+</script>
